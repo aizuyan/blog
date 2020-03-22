@@ -99,11 +99,11 @@ content 中的内容`IE=edge,chrome=1`，其中`IE=edge`告诉浏览器，以当
 
 这种好像比较少见，但隐隐觉得肯定有用，查了下，果然，他叫 [Open Graph Protocol](https://ogp.me/)，是 Facebook 制订的一个社交网络分享协议，有了上面的内容，分享之后会带上更多的信息、展示图片等，让分享的内容更吸引人。打开facebook，然后发布，输入链接，有`property="og:..."`属性的话，会自动生成类似下面的内容：
 >天猫
-![天猫](https://user-gold-cdn.xitu.io/2020/3/18/170eb9cfb79825b9?w=502&h=674&f=png&s=47569)
+![天猫](./images-HTML-meta/tmall.png)
 
 
 > 京东
-![京东](https://user-gold-cdn.xitu.io/2020/3/18/170eb9c3df421aa3?w=502&h=458&f=png&s=28953)
+![京东](./images-HTML-meta/jd.png)
 
 可以看到，如果没有设置 Open Graph Protocol 的话，facebook会自动获取标题和 meta 中的 description 信息展示，也没有图片展示。其实这个就像微信分享时候自定义的标题、链接、图片等一样，不过这个是不需要调用js，直接分享即可被Facebook等网站识别。可以从[这里](https://smo.knowem.com/)查看网站对 Open Graph Protocol 的支持情况。
 
