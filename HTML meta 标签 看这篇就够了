@@ -1,0 +1,146 @@
+## 引言
+
+> `<meta>` 元素提供有关页面的元信息，放在文档的头部，不包含内容，属性定义了与文档相关的键值对，不会显示在页面上，但对于机器是可读的。
+
+通常情况下，meta 元素被用于规定页面的描述、关键字、文档的作者、最后修改时间等，也会包含 header 头中的一部分信息。
+
+下面就说说 meta 的常用用法。
+
+## header 头
+最常见的一个 meta 标签可能就是`<meta charset="UTF-8">`了，读者可能会有疑问了，这里的 charset 和 header 头中的有什么关系？类似的还有很多，比如设置缓存、cookie等，当然除了 charset 之外的很少用到，有些也已经慢慢移除了，比如当使用`Set-Cookie`的时候，chrome 会给出警告信息。
+
+经过试验，发现，当 meta 和 header 头中同时设置一个内容的时候，header 头中的会覆盖 meta 中的信息优先使用。
+
+比如有 index.html 文件，编码格式为 GBK：
+```
+<html>
+    <head>
+        <meta charset="UTF-8">
+    </head>
+    <body>
+        中文乱码吗
+    </body>
+</html>
+
+```
+直接拖到浏览器打开，会乱码，通过服务器访问，并设置 header 头信息 `res.setHeader('Content-Type', 'text/html; charset=GBK')`，正常显示。
+
+## referrer 信息
+在谷歌首页源码中发现了`<meta content="origin" name="referrer">`，这个 meta 是用来设置 Referrer Policy 的，设置是否带 referer、什么情况带 referer，怎么带 referer。
+
+referrer 有如下取值
+> **no-referrer** 请求的时候，不带 referer 请求头
+
+> **no-referrer-when-downgrade** 这个是默认策略，整个 URL(origin、path、queryString) 都会作为 referrer 发送，但当安全协议降级，比如从 https -> http 的时候，不会发送。
+
+> **origin** 只发送 URL 中的 origin 信息，比如网址为`https://example.com/page.html`，请求头中为`referer: https://example.com/`。
+
+> **origin-when-cross-origin** 同源请求，发送整个 URL，跨域时候和 **origin** 的情况一样。
+
+> **same-origin** 仅同源情况发送 referer
+
+> **strict-origin** 类似 **origin**，但协议不能降级，比如从`http://a.com`请求`http://b.com`或者`https://...`会携带 referer。
+
+> **strict-origin-when-cross-origin** 与 **origin-when-cross-origin** 类似，但协议不能降级。
+
+> **unsafe-url** 任何情况都发送完整的 URL。
+
+这个测试也很简单，在本地启动一个服务器，然后请求下面的网页，让网页里面去请求内容，查看请求头即可，比如这里，页面加载后悔请求 a.png 这张图片，设置不同的 referrer 属性，携带的 referer 头信息不一样。
+```html
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta content="origin" name="referrer">
+    </head>
+    <body>
+        <img src="a.png">
+    </body>
+</html>
+
+```
+
+> tips，有没有发现，在 meta 标签中使用的是`referrer`，http 请求头里面用的是 `referer`？后者不是个单词，当时在制定 RFC 的时候，拼写错了，发现的时候已经晚了，已经被大量使用，因此 HTTP 标准决定继续使用这个错误拼写，一直沿用到现在。所以在使用的时候也要注意，拼写有的时候是正确的，有的时候是错误的。
+
+## IE 渲染模式
+> `<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />`
+
+上面这个也是碰到比较多的一个 meta 标签了，天猫、淘宝、京东、百度首页源码都有类似的标签（部分没有`,chrome=1`）。
+
+这个 meta 标签是用来设置浏览器的兼容性模式的，是 IE8 新加的一个属性，对于 < IE8 的浏览器是不识别的，也是 IE 内核特有的属性，其他内核浏览器不认识。
+
+content 中的内容`IE=edge,chrome=1`，其中`IE=edge`告诉浏览器，以当前浏览器最高版本 IE 来进行渲染；`chrome=1`告诉浏览器，如果安装了 [Google Chrome Frame](https://en.wikipedia.org/wiki/Google_Chrome_Frame)插件（GCF），则保持 IE 外观的模式下，使用 chrome 内核进行渲染，这里注意，该插件支持 IE6 ~ IE9，这里读者朋友可能会有疑惑了，不是 < IE8 的浏览器不支持当前小节的属性吗，那怎么使用呢？其实也很简单，在网址前面加上`gcf:`即可，比如`gcf:https://baidu.com`。
+
+除此之外还有一个用于设置360浏览器渲染模式的设置，常用`<meta name="renderer" content="webkit">`来启用360浏览器、QQ浏览器的极速模式（Chrome 内核），类似的还有一个`<meta name="force-rendering" content="webkit"/>`，让其他双核浏览器切换为极速模式。
+
+## 视窗设置 
+> `<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>`
+
+上面的标签一般在移动端中使用，`width=device-width` 设置网页的宽度（viewport）和设备的宽度一样，这样横向就不会出现滚动条，用户浏览体验会大幅提升；后面的几个设置不允许用户手动缩放。
+
+
+## 电话检测
+> `<meta name="format-detection" ...>`
+
+下面是天猫首页的设置，用来禁止自动识别电话、日期、地址，电话可能大家都遇到过，ios 上面，自动将一串数字加了链接，点击会进行拨号，加入下面第一个禁止即可。
+```
+<meta name="format-detection" content="telephone=no">
+<meta name="format-detection" content="date=no">
+<meta name="format-detection" content="address=no">
+```
+
+## The Open Graph Protocol（开放图谱协议）
+在天猫首页的源码中发现了下面的内容：
+```
+<meta property="og:title" content="天猫">
+<meta property="og:type" content="website">
+<meta property="og:url" content=" https://www.tmall.com/">
+<meta property="og:image" content=" https://img.alicdn.com/tfs/TB1MaLKRXXXXXaWXFXXXXXXXXXX-480-260.png">
+```
+
+这种好像比较少见，但隐隐觉得肯定有用，查了下，果然，他叫 [Open Graph Protocol](https://ogp.me/)，是 Facebook 制订的一个社交网络分享协议，有了上面的内容，分享之后会带上更多的信息、展示图片等，让分享的内容更吸引人。打开facebook，然后发布，输入链接，有`property="og:..."`属性的话，会自动生成类似下面的内容：
+>天猫
+![天猫](https://user-gold-cdn.xitu.io/2020/3/18/170eb9cfb79825b9?w=502&h=674&f=png&s=47569)
+
+
+> 京东
+![京东](https://user-gold-cdn.xitu.io/2020/3/18/170eb9c3df421aa3?w=502&h=458&f=png&s=28953)
+
+可以看到，如果没有设置 Open Graph Protocol 的话，facebook会自动获取标题和 meta 中的 description 信息展示，也没有图片展示。其实这个就像微信分享时候自定义的标题、链接、图片等一样，不过这个是不需要调用js，直接分享即可被Facebook等网站识别。可以从[这里](https://smo.knowem.com/)查看网站对 Open Graph Protocol 的支持情况。
+
+## robots SEO
+在 google 的首页源码中发现了`<meta content="noodp" name="robots">`标签，根据 robots 猜测跟搜索引擎爬取机器人有关。查阅资料后，果然，跟搜索引擎爬虫有关，用来做SEO用的。
+
+meta robots 可以取如下的值
+
+> **index** 允许将该网页录入搜索引擎索引。
+
+> **follow** 允许搜索引擎抓取当前页面上所有的链接。
+
+> **noindex** 禁止将该网页录入搜索引擎索引。
+
+> **nofollow** 禁止搜索引擎抓取当前页面上的链接。
+
+> **noarchive** 在搜索结果中不保存当前页面的快照
+
+> **all** 相当于`index, follow`，此值是默认值。
+
+> **noodp** 不使用开放目录中的网页摘要描述。
+
+> **noydir** 不使用雅虎分类目录中的网页摘要。
+
+最后两个可能不是很好理解，noodp 是 NO Open Directory Project 的缩写，noydir 是 NO Yahoo Directory 的缩写。他两是类似的，都是可以让大家录入网站、摘要，记录网站的信息，两个区别：前者是开放的，大家都可以维护，后者是提交之后审核生效，可以[看这里](https://baike.baidu.com/item/%E5%BC%80%E6%94%BE%E5%BC%8F%E7%9B%AE%E5%BD%95)。
+
+有些网站会设置开放目录中的信息，导致搜索引擎展示开放目录中设置的信息，和网站的现有信息不匹配，通过 noodp、noydir 禁止搜索引擎使用开放目录上的信息，使用网站页面的现有信息。
+
+最后两个在国内使用的不多。
+
+
+## 公众号
+![](https://user-gold-cdn.xitu.io/2020/3/22/170fffc505c060ba?w=258&h=258&f=jpeg&s=27647)
+
+
+## 广告
+西安菊场大量招聘java、python开发工程师，云计算部门，负责openstack、桌面云等相关工作
+
+手机（微信）：17089797386
+邮箱：ritoyan@163.com
